@@ -3,9 +3,9 @@
 namespace EncompassRest.Loans.RateLocks
 {
     /// <summary>
-    /// RateLockAction
+    /// LockAction
     /// </summary>
-    public enum RateLockAction
+    public enum LockAction
     {
         /// <summary>
         /// Confirm
