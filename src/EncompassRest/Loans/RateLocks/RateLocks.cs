@@ -16,9 +16,10 @@ namespace EncompassRest.Loans.RateLocks
         /// Retrieves rate lock information for a specified request ID in a loan.
         /// </summary>
         /// <param name="requestId">Unique identifier assigned to the request. The requestId is returned in the response as part of the location header after submitting a rate lock request.</param>
+        /// <param name="view">Specifies the level of detail to be returned for the ratelockrequest. Possible values are: Detailed and Summary. Summary is the default.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task<RateLockRequest> GetRateLockAsync(string requestId, CancellationToken cancellationToken = default);
+        Task<RateLockRequest> GetRateLockAsync(string requestId, LockView? view, CancellationToken cancellationToken = default);
         /// <summary>
         /// Retrieves rate lock information for a specified request ID in a loan as raw json.
         /// </summary>
@@ -64,15 +65,16 @@ namespace EncompassRest.Loans.RateLocks
         /// <param name="populate">Indicates if the lock request object should be populated with the response's body through the use of the entity view query parameter.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task SubmitRateLockRequestAsync(LockAction action, DataSyncOption dataSyncOption, RateLockRequest lockRequest, bool populate, CancellationToken cancellationToken = default);
+        Task<string> SubmitRateLockRequestAsync(LockAction action, DataSyncOption dataSyncOption, RateLockRequest lockRequest, bool populate, CancellationToken cancellationToken = default);
         /// <summary>
         /// Use this API to create a new rate lock request if you are a Loan Officer. If you are a Secondary user, use this API to perform an action on an existing rate lock request for a specified loan, or submit and confirm a new rate lock request for the loan.
         /// </summary>
-        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="requestId">The unique identifier of the existing rate lock request.</param>
+        /// <param name="lockRequest">The lock request details as raw json</param>
         /// <param name="queryString">The query string to include in the request.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task<string> SubmitRateLockRequestRawAsync(RateLockRequest lockRequest, string? queryString = null, CancellationToken cancellationToken = default);
+        Task<string> SubmitRateLockRequestRawAsync(string requestId, string lockRequest, string? queryString = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// Update rate lock request of a specified request ID for a loan. A rate lock request can be updated if it has not been confirmed or denied or cancelled. Updating a rate lock request will not create a new request.
         /// </summary>
@@ -83,11 +85,12 @@ namespace EncompassRest.Loans.RateLocks
         /// <summary>
         /// Update rate lock request of a specified request ID for a loan. A rate lock request can be updated if it has not been confirmed or denied or cancelled. Updating a rate lock request will not create a new request.
         /// </summary>
-        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="requestId">The unique identifier of the existing rate lock request.</param>
+        /// <param name="lockRequest">The lock request details as raw json</param>
         /// <param name="queryString">The query string to include in the request.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task<string> UpdateRateLockRequestRawAsync(RateLockRequest lockRequest, string? queryString = null, CancellationToken cancellationToken = default);
+        Task<string> UpdateRateLockRequestRawAsync(string requestId, string lockRequest, string? queryString = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// Use this API to confirm a rate lock request. This call releases any existing rate lock on the specified loan and locks the new rate on the loan.
         /// </summary>
@@ -96,30 +99,48 @@ namespace EncompassRest.Loans.RateLocks
         /// <returns></returns>
         Task<RateLockRequest> ConfirmRateLockRequestAsync(RateLockRequest lockRequest, CancellationToken cancellationToken = default);
         /// <summary>
-        /// Use this API to confirm a rate lock request. This call releases any existing rate lock on the specified loan and locks the new rate on the loan.
+        /// Use this API to confirm a rate lock request. This call releases any existing rate lock on the specified loan and locks the new rate on the loan from raw json.
         /// </summary>
-        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="requestId">The unique identifier of the existing rate lock request.</param>
+        /// <param name="lockRequest">The lock request details as raw json</param>
         /// <param name="queryString">The query string to include in the request.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task<string> ConfirmRateLockRequestRawAsync(RateLockRequest lockRequest, string? queryString = null, CancellationToken cancellationToken = default);
+        Task<string> ConfirmRateLockRequestRawAsync(string requestId, string lockRequest, string? queryString = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// Cancels an existing lock. Only locks that are recently requested or confirmed can be canceled.
         /// </summary>
         /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
-        /// <param name="cancellationDate">Date to cancel the lock.</param>
+        /// <param name="cancellationOptions">Lock cancellation comments</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task<RateLockRequest> CancelRateLockRequestAsync(string requestId, DateTime cancellationDate, CancellationToken cancellationToken = default);
+        Task<RateLockRequest> CancelRateLockRequestAsync(string requestId, RateLockCancelDenyOptions cancellationOptions, CancellationToken cancellationToken = default);
         /// <summary>
         /// Cancels an existing lock. Only locks that are recently requested or confirmed can be canceled.
         /// </summary>
         /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
-        /// <param name="cancellationDate">Date to cancel the lock.</param>
+        /// <param name="cancellationOptions">Lock cancellation comments</param>
         /// <param name="queryString">The query string to include in the request.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task<string> CancelRateLockRequestRawAsync(string requestId, DateTime cancellationDate, string? queryString = null, CancellationToken cancellationToken = default);
+        Task<string> CancelRateLockRequestRawAsync(string requestId, RateLockCancelDenyOptions cancellationOptions, string? queryString = null, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Denies a rate lock request for the specified request ID.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
+        /// <param name="denialOptions">Lock denial comments</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        Task<RateLockRequest> DenyRateLockRequestAsync(string requestId, RateLockCancelDenyOptions denialOptions, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Denies a rate lock request for the specified request ID using raw json.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
+        /// <param name="denialOptions">Lock denial comments</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        Task<string> DenyRateLockRequestRawAsync(string requestId, RateLockCancelDenyOptions denialOptions, string? queryString = null, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -132,7 +153,240 @@ namespace EncompassRest.Loans.RateLocks
         {
         }
 
-        
+        /// <summary>
+        /// Cancels an existing lock. Only locks that are recently requested or confirmed can be canceled.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
+        /// <param name="cancellationOptions">Lock cancellation options</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<RateLockRequest> CancelRateLockRequestAsync(string requestId, RateLockCancelDenyOptions cancellationOptions, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
 
+            return PutAsync<RateLockRequest>($"{requestId}/cancellation", null, JsonStreamContent.Create(cancellationOptions), nameof(CancelRateLockRequestAsync), requestId, cancellationToken, FuncCache<RateLockRequest>.ReadAsFunc);
+        }
+
+        /// <summary>
+        /// Cancels an existing lock. Only locks that are recently requested or confirmed can be canceled from raw json.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
+        /// <param name="cancellationOptions">Lock cancellation options</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> CancelRateLockRequestRawAsync(string requestId, RateLockCancelDenyOptions cancellationOptions, string? queryString = null, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+
+            return PutRawAsync($"{requestId}/cancellation", queryString, JsonStreamContent.Create(cancellationOptions), nameof(CancelRateLockRequestAsync), requestId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Use this API to confirm a rate lock request. This call releases any existing rate lock on the specified loan and locks the new rate on the loan.
+        /// </summary>
+        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<RateLockRequest> ConfirmRateLockRequestAsync(RateLockRequest lockRequest, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(lockRequest.Id, nameof(lockRequest.Id));
+
+            return PutAsync<RateLockRequest>($"{lockRequest.Id}/confirmation", null, JsonStreamContent.Create(lockRequest), nameof(ConfirmRateLockRequestAsync), lockRequest.Id, cancellationToken, FuncCache<RateLockRequest>.ReadAsFunc);
+        }
+
+        /// <summary>
+        /// Use this API to confirm a rate lock request. This call releases any existing rate lock on the specified loan and locks the new rate on the loan from raw json.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request.</param>
+        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> ConfirmRateLockRequestRawAsync(string requestId, string lockRequest, string? queryString = null, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+            Preconditions.NotNullOrEmpty(lockRequest, nameof(lockRequest));
+
+            return PutRawAsync($"{requestId}/confirmation", queryString, JsonStreamContent.Create(lockRequest), nameof(ConfirmRateLockRequestAsync), requestId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves rate lock information for a specified request ID in a loan.
+        /// </summary>
+        /// <param name="requestId">Unique identifier assigned to the request. The requestId is returned in the response as part of the location header after submitting a rate lock request.</param>
+        /// <param name="view">Specifies the level of detail to be returned for the ratelockrequest. Possible values are: Detailed and Summary. Summary is the default.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public async Task<RateLockRequest> GetRateLockAsync(string requestId, LockView? view = LockView.Summary, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+
+            var queryParameters = new QueryParameters();
+
+            if (view.HasValue)
+            {
+                queryParameters.Add("view", view.ToString().ToLower());
+            }
+
+            return await GetDirtyAsync<RateLockRequest>(requestId, queryParameters.ToString(), nameof(GetRateLockAsync), requestId, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Retrieves rate lock information for a specified request ID in a loan as raw json.
+        /// </summary>
+        /// <param name="requestId">Unique identifier assigned to the request. The requestId is returned in the response as part of the location header after submitting a rate lock request.</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> GetRateLockRawAsync(string requestId, string? queryString = null, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+
+            return GetRawAsync(requestId, queryString, nameof(GetRateLockRawAsync), requestId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves all rate lock requests for the specified loan. To retrieve the "current" rate lock on the loan, look for the rate lock with "lockStatus": "Locked"
+        /// </summary>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<List<RateLockRequest>> GetRateLocksAsync(CancellationToken cancellationToken = default) => GetDirtyListAsync<RateLockRequest>(null, null, nameof(GetRateLocksAsync), null, cancellationToken);
+
+        /// <summary>
+        /// Retrieves all rate lock requests for the specified loan as raw json. To retrieve the "current" rate lock on the loan, look for the rate lock with "lockStatus": "Locked"
+        /// </summary>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> GetRateLocksRawAsync(string? queryString = null, CancellationToken cancellationToken = default) => GetRawAsync(null, queryString, nameof(GetRateLocksRawAsync), null, cancellationToken);
+
+        /// <summary>
+        /// Returns the loan snapshot associated with the specified Rate Lock Request.
+        /// </summary>
+        /// <param name="requestId">Unique identifier assigned to the request. The requestId is returned in the response as part of the location header after submitting a rate lock request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public async Task<Dictionary<string, string>> GetRateLockSnapshotAsync(string requestId, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+
+            return await GetAsync<Dictionary<string, string>>(requestId, null, nameof(GetRateLockAsync), requestId, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Returns the loan snapshot associated with the specified Rate Lock Request as raw json.
+        /// </summary>
+        /// <param name="requestId">Unique identifier assigned to the request. The requestId is returned in the response as part of the location header after submitting a rate lock request.</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> GetRateLockSnapshotRawAsync(string requestId, string? queryString = null, CancellationToken cancellationToken = default) {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+
+            return GetRawAsync(requestId, queryString, nameof(GetRateLockSnapshotRawAsync), requestId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Use this API to create a new rate lock request if you are a Loan Officer. If you are a Secondary user, use this API to perform an action on an existing rate lock request for a specified loan, or submit and confirm a new rate lock request for the loan.
+        /// </summary>
+        /// <param name="action">Possible actions for a Secondary user include: confirm: Creates and confirms a new rate lock. extend: Extends the confirmed and current rate lock. This creates a new rate lock. relock: Re-locks the confirmed rate lock. This creates a new rate lock. cancel: Cancels a confirmed rate lock request.</param>
+        /// <param name="dataSyncOption">Determines whether the loan will be updated with lock data after a lock is confirmed. Possible values are - noSync: Does not update the loan with lock data upon lock confirmation. - syncLockToLoan: The default value. Updates the loan with the lock data upon lock confirmation.</param>
+        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="populate">Indicates if the lock request object should be populated with the response's body through the use of the entity view query parameter.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> SubmitRateLockRequestAsync(LockAction action, DataSyncOption dataSyncOption, RateLockRequest lockRequest, bool populate, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNull(action, nameof(action));
+            Preconditions.NotNull(dataSyncOption, nameof(dataSyncOption));
+
+            var queryParameters = new QueryParameters();
+
+            queryParameters.Add("action", action.ToString().ToLower());
+            queryParameters.Add("dataSyncOption", dataSyncOption.ToString().ToLower());
+
+            if (lockRequest.Id != null)
+            {
+                queryParameters.Add("requestId", lockRequest.Id.ToLower());
+            }
+
+            return PostPopulateDirtyAsync<RateLockRequest>(null, nameof(SubmitRateLockRequestAsync), lockRequest, populate, cancellationToken);
+        }
+
+        /// <summary>
+        /// Use this API to create a new rate lock request if you are a Loan Officer. If you are a Secondary user, use this API to perform an action on an existing rate lock request for a specified loan, or submit and confirm a new rate lock request for the loan.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request.</param>
+        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> SubmitRateLockRequestRawAsync(string requestId, string lockRequest, string? queryString = null, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+            Preconditions.NotNullOrEmpty(lockRequest, nameof(lockRequest));
+
+            return PostRawAsync(requestId, queryString, JsonStreamContent.Create(lockRequest), nameof(SubmitRateLockRequestRawAsync), requestId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Update rate lock request of a specified request ID for a loan. A rate lock request can be updated if it has not been confirmed or denied or cancelled. Updating a rate lock request will not create a new request.
+        /// </summary>
+        /// <param name="lockRequest">The lock request details. Use the data provided in the sample request or create a lock request with default values using null</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<RateLockRequest> UpdateRateLockRequestAsync(RateLockRequest lockRequest, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNull(lockRequest, nameof(lockRequest));
+            Preconditions.NotNullOrEmpty(lockRequest.Id, nameof(lockRequest.Id));
+
+            return PatchAsync<RateLockRequest>(lockRequest.Id, null, JsonStreamContent.Create(lockRequest), nameof(UpdateRateLockRequestAsync), lockRequest.Id, cancellationToken, FuncCache<RateLockRequest>.ReadAsFunc);
+        }
+
+        /// <summary>
+        /// Update rate lock request of a specified request ID for a loan. A rate lock request can be updated if it has not been confirmed or denied or cancelled. Updating a rate lock request will not create a new request.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request.</param>
+        /// <param name="lockRequest">The lock request details as raw json</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> UpdateRateLockRequestRawAsync(string requestId, string lockRequest, string? queryString = null, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+            Preconditions.NotNullOrEmpty(lockRequest, nameof(lockRequest));
+
+            return PatchRawAsync(requestId, queryString, JsonStreamContent.Create(lockRequest), nameof(UpdateRateLockRequestRawAsync), requestId, cancellationToken);
+        }
+
+        /// <summary>
+        /// Denies a rate lock request for the specified request ID.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
+        /// <param name="denialOptions">Lock denial options</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<RateLockRequest> DenyRateLockRequestAsync(string requestId, RateLockCancelDenyOptions denialOptions, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+
+            return PutAsync<RateLockRequest>($"{requestId}/denial", null, JsonStreamContent.Create(denialOptions), nameof(CancelRateLockRequestAsync), requestId, cancellationToken, FuncCache<RateLockRequest>.ReadAsFunc);
+        }
+
+        /// <summary>
+        /// Denies a rate lock request for the specified request ID from raw json.
+        /// </summary>
+        /// <param name="requestId">The unique identifier of the existing rate lock request. Required for extend, relock and cancel actions.</param>
+        /// <param name="denialOptions">Lock denial options</param>
+        /// <param name="queryString">The query string to include in the request.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+        /// <returns></returns>
+        public Task<string> DenyRateLockRequestRawAsync(string requestId, RateLockCancelDenyOptions denialOptions, string? queryString = null, CancellationToken cancellationToken = default)
+        {
+            Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
+
+            return PutRawAsync($"{requestId}/denial", queryString, JsonStreamContent.Create(denialOptions), nameof(CancelRateLockRequestAsync), requestId, cancellationToken);
+        }
     }
 }
