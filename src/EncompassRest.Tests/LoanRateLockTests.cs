@@ -12,7 +12,7 @@ namespace EncompassRest.Tests
     {
         [TestMethod]
         [ApiTest]
-        public async Task LoanGetRateLocks()
+        public async Task LoanSubmitLockRequest()
         {
             var client = await GetTestClientAsync();
             var loan = new Loan(client);
@@ -35,29 +35,57 @@ namespace EncompassRest.Tests
                 await rateLockApi.SubmitRateLockRequestAsync(rateLockRequest, true);
                 var requestId = rateLockRequest.Id;
                 Assert.IsFalse(string.IsNullOrEmpty(requestId));
-                //Assert.AreEqual("6", addedCondition.OwnerRole.EntityId);
+                Assert.AreEqual(LockStatus.Requested, rateLockRequest.LockStatus);
+                await Task.Delay(1000);
+                rateLocks = await rateLockApi.GetRateLocksAsync();
+                Assert.IsNotNull(rateLocks);
+                Assert.AreEqual(1, rateLocks.Count);
+                Assert.AreEqual(rateLockRequest.LockRequest.LockNumberOfDays, rateLocks[0].LockRequest.LockNumberOfDays);
+                Assert.AreEqual(rateLockRequest.LockRequest.LockExpirationDate, rateLocks[0].LockRequest.LockExpirationDate);
+                Assert.AreEqual(rateLockRequest.RequestedBy.EntityId, rateLocks[0].RequestedBy.EntityId);
+                
+                var retrievedRateLock = await rateLockApi.GetRateLockAsync(requestId, LockView.Detailed);
+                Assert.IsNotNull(retrievedRateLock);
+                Assert.AreEqual(rateLockRequest.LockRequest.LockNumberOfDays, retrievedRateLock.LockRequest.LockNumberOfDays);
+                Assert.AreEqual(rateLockRequest.LockRequest.LockExpirationDate, retrievedRateLock.LockRequest.LockExpirationDate);
+                Assert.AreEqual(rateLockRequest.RequestedBy.EntityId, retrievedRateLock.RequestedBy.EntityId);
+
+                //rateLockRequest.LockRequest.BaseRate = 4;
+                //rateLockRequest.LockRequest.BasePrice = 101.85m;
+                //await rateLockApi.UpdateRateLockRequestAsync(rateLockRequest);
                 //await Task.Delay(1000);
-                //conditions = await underwritingConditions.GetConditionsAsync();
-                //Assert.IsNotNull(conditions);
-                //Assert.AreEqual(1, conditions.Count);
-                //Assert.AreEqual(addedCondition.Title, conditions[0].Title);
-                //Assert.AreEqual(addedCondition.Source.Value, conditions[0].Source.Value);
-                //Assert.AreEqual(addedCondition.ForAllApplications, conditions[0].ForAllApplications);
-                //AssertNoExtensionData(conditions[0], "Conditions[0]", conditions[0].Title, true);
-                //var retrievedCondition = await underwritingConditions.GetConditionAsync(conditionId);
-                //Assert.IsNotNull(retrievedCondition);
-                //Assert.AreEqual(addedCondition.Title, retrievedCondition.Title);
-                //Assert.AreEqual(addedCondition.Source.Value, retrievedCondition.Source.Value);
-                //Assert.AreEqual(addedCondition.ForAllApplications, retrievedCondition.ForAllApplications);
-                //AssertNoExtensionData(retrievedCondition, "RetrievedCondition", retrievedCondition.Title, true);
-                //addedCondition.Title = "DEF";
-                //await underwritingConditions.UpdateConditionsAsync(new[] { addedCondition });
+
+                //retrievedRateLock = await rateLockApi.GetRateLockAsync(requestId, LockView.Detailed);
+                //Assert.IsNotNull(retrievedRateLock);
+                //Assert.AreEqual(4, rateLockRequest.LockRequest.BaseRate);
+                //Assert.AreEqual(101.85m, rateLockRequest.LockRequest.BasePrice);
+                //Assert.AreEqual(4, retrievedRateLock.LockRequest.BaseRate);
+                //Assert.AreEqual(101.85m, retrievedRateLock.LockRequest.BasePrice);
+
+                //var cancelledRateLock = await rateLockApi.CancelRateLockRequestAsync(requestId, true);
+                //Assert.IsNotNull(cancelledRateLock);
+                //Assert.AreEqual(LockStatus.Cancelled, cancelledRateLock.LockStatus);
                 //await Task.Delay(1000);
-                //retrievedCondition = await underwritingConditions.GetConditionAsync(conditionId);
-                //Assert.AreEqual(addedCondition.Title, retrievedCondition.Title);
-                //Assert.IsTrue(await underwritingConditions.DeleteConditionsAsync(new[] { conditionId }));
-                //await Task.Delay(1000);
-                //Assert.AreEqual(0, (await underwritingConditions.GetConditionsAsync()).Count);
+                //retrievedRateLock = await rateLockApi.GetRateLockAsync(requestId, LockView.Detailed);
+                //Assert.IsNotNull(retrievedRateLock);
+                //Assert.AreEqual(LockStatus.Cancelled, retrievedRateLock.LockStatus);
+
+                await rateLockApi.ConfirmRateLockRequestAsync(retrievedRateLock, true);
+                Assert.IsNotNull(retrievedRateLock);
+                Assert.AreEqual(LockStatus.Locked, retrievedRateLock.LockStatus);
+                await Task.Delay(1000);
+                retrievedRateLock = await rateLockApi.GetRateLockAsync(requestId, LockView.Detailed);
+                Assert.IsNotNull(retrievedRateLock);
+                Assert.AreEqual(LockStatus.Locked, retrievedRateLock.LockStatus);
+
+                var deniedRateLock = await rateLockApi.DenyRateLockRequestAsync(requestId, true);
+                Assert.IsNotNull(deniedRateLock);
+                Assert.AreEqual(LockStatus.Denied, deniedRateLock.LockStatus);
+                await Task.Delay(1000);
+                retrievedRateLock = await rateLockApi.GetRateLockAsync(requestId, LockView.Detailed);
+                Assert.IsNotNull(retrievedRateLock);
+                Assert.AreEqual(LockStatus.Denied, retrievedRateLock.LockStatus);
+
             }
             finally
             {
