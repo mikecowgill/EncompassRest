@@ -10,7 +10,7 @@ namespace EncompassRest.Loans.RateLocks
     /// <summary>
     /// The Loan Rate Lock Apis.
     /// </summary>
-    public interface IRateLocks : ILoanApiObject
+    public interface ILoanRateLocks : ILoanApiObject
     {
         /// <summary>
         /// Retrieves rate lock information for a specified request ID in a loan.
@@ -65,7 +65,7 @@ namespace EncompassRest.Loans.RateLocks
         /// <param name="populate">Indicates if the lock request object should be populated with the response's body through the use of the entity view query parameter.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        Task<string> SubmitRateLockRequestAsync(LockAction action, DataSyncOption dataSyncOption, RateLockRequest lockRequest, bool populate, CancellationToken cancellationToken = default);
+        Task<string> SubmitRateLockRequestAsync(RateLockRequest lockRequest, bool populate, LockAction? action = null, DataSyncOption? dataSyncOption = null, CancellationToken cancellationToken = default);
         /// <summary>
         /// Use this API to create a new rate lock request if you are a Loan Officer. If you are a Secondary user, use this API to perform an action on an existing rate lock request for a specified loan, or submit and confirm a new rate lock request for the loan.
         /// </summary>
@@ -146,9 +146,9 @@ namespace EncompassRest.Loans.RateLocks
     /// <summary>
     /// The Loan Rate Lock Apis.
     /// </summary>
-    public sealed class RateLocks : LoanApiObject, IRateLocks
+    public sealed class LoanRateLocks : LoanApiObject, ILoanRateLocks
     {
-        internal RateLocks(EncompassRestClient client, string loanId)
+        internal LoanRateLocks(EncompassRestClient client, string loanId)
             : base(client, loanId, "ratelockRequests")
         {
         }
@@ -296,16 +296,18 @@ namespace EncompassRest.Loans.RateLocks
         /// <param name="populate">Indicates if the lock request object should be populated with the response's body through the use of the entity view query parameter.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
         /// <returns></returns>
-        public Task<string> SubmitRateLockRequestAsync(LockAction action, DataSyncOption dataSyncOption, RateLockRequest lockRequest, bool populate, CancellationToken cancellationToken = default)
+        public Task<string> SubmitRateLockRequestAsync(RateLockRequest lockRequest, bool populate, LockAction? action = null, DataSyncOption? dataSyncOption = null, CancellationToken cancellationToken = default)
         {
-            Preconditions.NotNull(action, nameof(action));
-            Preconditions.NotNull(dataSyncOption, nameof(dataSyncOption));
-
             var queryParameters = new QueryParameters();
 
-            queryParameters.Add("action", action.ToString().ToLower());
-            queryParameters.Add("dataSyncOption", dataSyncOption.ToString().ToLower());
-
+            if (action.HasValue)
+            {
+                queryParameters.Add("action", action.ToString().ToLower());
+            }
+            if (dataSyncOption.HasValue)
+            {
+                queryParameters.Add("dataSyncOption", dataSyncOption.ToString().ToLower());
+            }
             if (lockRequest.Id != null)
             {
                 queryParameters.Add("requestId", lockRequest.Id.ToLower());

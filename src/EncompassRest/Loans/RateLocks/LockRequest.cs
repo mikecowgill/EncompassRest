@@ -1,3 +1,6 @@
+using EncompassRest.Schema;
+using EncompassRest.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
@@ -42,7 +45,7 @@ namespace EncompassRest.Loans.RateLocks
         private DirtyValue<DateTime?>? _lastRateSetDate;
         private DirtyValue<int?>? _lockNumberOfDays;
         private DirtyValue<string?>? _lockExpirationDate;
-        private DirtyValue<string?>? _lockDate;
+        private DirtyValue<DateTime?>? _lockDate;
         private DirtyValue<decimal?>? _baseRate;
         private DirtyValue<List<LockAdjustment>?>? _adjustments;
         private DirtyValue<decimal?>? _totalRateAdjustments;
@@ -211,35 +214,36 @@ namespace EncompassRest.Loans.RateLocks
         /// <summary>
         /// The ID from the investor's rate sheet for the current lock.
         /// </summary>
-        public string? rateSheetId { get => _rateSheetId; set => SetField(ref _rateSheetId, value); }
+        public string? RateSheetId { get => _rateSheetId; set => SetField(ref _rateSheetId, value); }
 
         /// <summary>
         /// Date when the interest rate for the loan was last locked.
         /// </summary>
-        public DateTime? lastRateSetDate { get => _lastRateSetDate; set => SetField(ref _lastRateSetDate, value); }
+        public DateTime? LastRateSetDate { get => _lastRateSetDate; set => SetField(ref _lastRateSetDate, value); }
 
         /// <summary>
-        /// 
+        /// The number of days in the current lock.
         /// </summary>
         public int? LockNumberOfDays { get => _lockNumberOfDays; set => SetField(ref _lockNumberOfDays, value); }
 
         /// <summary>
-        /// 
+        /// Expiration date of the rate lock.
         /// </summary>
         public string? LockExpirationDate { get => _lockExpirationDate; set => SetField(ref _lockExpirationDate, value); }
 
         /// <summary>
-        /// 
+        /// The lock date of the current lock.
         /// </summary>
-        public string? LockDate { get => _lockDate; set => SetField(ref _lockDate, value); }
+        [JsonConverter(typeof(DateFormatJsonConverter), "yyyy-MM-dd")]
+        public DateTime? LockDate { get => _lockDate; set => SetField(ref _lockDate, value); }
 
         /// <summary>
-        /// 
+        /// The requested base rate (as a percentage) for the lock.
         /// </summary>
         public decimal? BaseRate { get => _baseRate; set => SetField(ref _baseRate, value); }
 
         /// <summary>
-        /// 
+        /// List of the rate adjustments.
         /// </summary>
         public List<LockAdjustment>? Adjustments { get => _adjustments; set => SetField(ref _adjustments, value); }
 
