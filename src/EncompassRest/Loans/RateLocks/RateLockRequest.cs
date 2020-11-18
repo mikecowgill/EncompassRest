@@ -25,6 +25,7 @@ namespace EncompassRest.Loans.RateLocks
         private DirtyValue<ParentRateLockRequest?>? _parentLockRequest;
         private DirtyList<CustomField>? _customFields;
         private DirtyValue<string?>? _investorCommitment;
+        private DirtyValue<LoanInformation?>? _loanInformation;
         private DirtyValue<LockRequest?>? _lockRequest;
         private DirtyValue<BuySide?>? _buySide;
         private DirtyValue<SellSide?>? _sellSide;
@@ -115,6 +116,11 @@ namespace EncompassRest.Loans.RateLocks
         /// Investor's commitment.
         /// </summary>
         public string? InvestorCommitment { get => _investorCommitment; set => SetField(ref _investorCommitment, value); }
+
+        /// <summary>
+        /// Object containing attributes that describe loan information.
+        /// </summary>
+        public LoanInformation? LoanInformation { get => _loanInformation; set => SetField(ref _loanInformation, value); }
 
         /// <summary>
         /// Attributes that define the lock request.
