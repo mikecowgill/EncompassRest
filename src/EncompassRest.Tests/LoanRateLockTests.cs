@@ -99,5 +99,48 @@ namespace EncompassRest.Tests
             }
         }
 
+        [TestMethod]
+        [ApiTest]
+        public async Task LoanGetLockSnapshot()
+        {
+            var client = await GetTestClientAsync();
+            var loan = new Loan(client);
+            var loanId = await client.Loans.CreateLoanAsync(loan);
+            try
+            {
+                await Task.Delay(1000);
+                var rateLockApi = loan.LoanApis.RateLocks;
+                var rateLocks = await rateLockApi.GetRateLocksAsync();
+                Assert.IsNotNull(rateLocks);
+                Assert.AreEqual(0, rateLocks.Count);
+                var rateLockRequest = new RateLockRequest()
+                {
+                    LockRequest = new LockRequest()
+                    {
+                        LockDate = DateTime.Today,
+                        LockNumberOfDays = 15
+                    }
+                };
+                await rateLockApi.SubmitRateLockRequestAsync(rateLockRequest, true);
+                var requestId = rateLockRequest.Id;
+                Assert.IsFalse(string.IsNullOrEmpty(requestId));
+
+                var lockSnapshot = await rateLockApi.GetRateLockSnapshotAsync(requestId);
+                Assert.IsNotNull(lockSnapshot);
+                Assert.IsTrue(lockSnapshot.ContainsKey("4209"));
+                Assert.AreEqual(RequestStatus.NotLocked, lockSnapshot["4209"]);
+            }
+            finally
+            {
+                try
+                {
+                    await client.Loans.DeleteLoanAsync(loanId);
+                }
+                catch
+                {
+                }
+            }
+        }
+
     }
 }

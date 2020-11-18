@@ -217,7 +217,7 @@ namespace EncompassRest.Loans.RateLocks
         {
             Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
 
-            return await GetAsync<Dictionary<string, string>>(requestId, null, nameof(GetRateLockAsync), requestId, cancellationToken).ConfigureAwait(false);
+            return await GetAsync<Dictionary<string, string>>($"{requestId}/snapshot", null, nameof(GetRateLockAsync), requestId, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace EncompassRest.Loans.RateLocks
         public Task<string> GetRateLockSnapshotRawAsync(string requestId, string? queryString = null, CancellationToken cancellationToken = default) {
             Preconditions.NotNullOrEmpty(requestId, nameof(requestId));
 
-            return GetRawAsync(requestId, queryString, nameof(GetRateLockSnapshotRawAsync), requestId, cancellationToken);
+            return GetRawAsync($"{requestId}/snapshot", queryString, nameof(GetRateLockSnapshotRawAsync), requestId, cancellationToken);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace EncompassRest.Loans.RateLocks
                 queryParameters.Add("requestId", lockRequest.Id.ToLower());
             }
 
-            return PostPopulateDirtyAsync<RateLockRequest>(null, nameof(SubmitRateLockRequestAsync), lockRequest, populate, cancellationToken);
+            return PostPopulateDirtyAsync(null, nameof(SubmitRateLockRequestAsync), lockRequest, populate, cancellationToken);
         }
 
         /// <summary>
